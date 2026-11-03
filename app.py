@@ -2,9 +2,18 @@ import os
 import pandas as pd
 import streamlit as st
 from datetime import datetime
-
+from github import Auth,Github
 os.makedirs("csv_files", exist_ok=True)
 
+def upload_to_github(local, remote, token, repo_name):
+  r = Github(auth=Auth.Token(token)).get_repo(repo_name)
+  content = open(local, encoding="utf-8").read()
+
+  try:
+    f = r.get_contents(remote)
+    r.update_file(f.path, "Update", content, f.sha)
+  except:
+    r.create_file(remote, "Create", content)
 
 st.markdown(
     '<u><center><h1 style="color: white; font-weight: bold;">Class Attendance'
@@ -46,9 +55,11 @@ if st.button("Save Attendance"):
     if os.path.exists(folder_path):
         os.remove(file)
     edited_df.to_csv(file, index=False)
+    upload_to_github(
+        local=file,
+        remote=f"data/{gradeclass}_{time}.csv",
+        token="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",
+        repo_name="thenudasandil-source/class-room-data",
+    )
+
     st.success("✅ Attendance Successfully Saved!")
-
-
-
-
-
